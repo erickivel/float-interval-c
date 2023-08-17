@@ -100,18 +100,18 @@ struct Interval *intervalMult(struct Interval a, struct Interval b) {
 
   result->first = MIN(MIN(a.first * b.first, a.first * b.second),
                       MIN(a.second * b.first, a.second * b.second));
-  result->second = a.second + b.second;
+  result->second = MAX(MAX(a.first * b.first, a.first * b.second),
+                      MAX(a.second * b.first, a.second * b.second));
 
   return result;
 }
 
 struct Interval *intervalDiv(struct Interval a, struct Interval b) {
-  struct Interval *result = malloc(sizeof(struct Interval));
+  struct Interval aux;
+  aux.second = 1/b.first;
+  aux.first = 1/a.second;
 
-  result->first = a.first + b.first;
-  result->second = a.second + b.second;
-
-  return result;
+  return intervalMult(a, aux);
 }
 
 struct Interval **calculate(struct Expression expression,
