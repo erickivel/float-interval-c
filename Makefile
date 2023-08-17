@@ -7,7 +7,7 @@ CC			= gcc
 CFILES		= $(foreach D, $(SRCDIRS), $(wildcard $(D)/*.c))
 CFLAGS		= -Wall -Wextra -pedantic
 LDFLAGS		= $(foreach D, $(INCDIRS), -I$(D))
-LBFLAGS		= -lncurses
+LBFLAGS		= -lm
 OBJFILES	= $(patsubst %.c, %.o, $(CFILES))
 
 all: $(TARGET)
