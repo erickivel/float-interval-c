@@ -17,8 +17,8 @@ struct Expression *readExpression();
 
 struct Interval **makeIntervalVector(struct Expression *expr);
 
-struct Interval *calculate(struct Expression expression,
-                           struct Interval **intervalVector);
+struct Interval **calculate(struct Expression expression,
+                            struct Interval **intervalVector);
 
 void printAnswer(struct Interval **intervalVector);
 

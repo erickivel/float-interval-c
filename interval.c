@@ -5,6 +5,9 @@
 
 #include "interval.h"
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 struct Expression *readExpression() {
   struct Expression *expr = malloc(sizeof(struct Expression));
 
@@ -73,16 +76,81 @@ void printOps(struct Expression expr) {
   printInterval(*makeInterval(expr.nums[4]));
 }
 
-struct Interval *calculate(struct Expression expression,
-                           struct Interval **intervalVector) {}
+struct Interval *intervalSum(struct Interval a, struct Interval b) {
+  struct Interval *result = malloc(sizeof(struct Interval));
+
+  result->first = a.first + b.first;
+  result->second = a.second + b.second;
+
+  return result;
+}
+
+struct Interval *intervalSub(struct Interval a, struct Interval b) {
+  struct Interval *result = malloc(sizeof(struct Interval));
+
+  result->first = a.first - b.second;
+  result->second = a.second - b.first;
+
+  return result;
+}
+
+// X * Y = [a,b] * [c,d]  =  [min{a*c,a*d,b*c,b*d}, max{a*c,a*d,b*c,b*d}]
+struct Interval *intervalMult(struct Interval a, struct Interval b) {
+  struct Interval *result = malloc(sizeof(struct Interval));
+
+  result->first = MIN(MIN(a.first * b.first, a.first * b.second),
+                      MIN(a.second * b.first, a.second * b.second));
+  result->second = a.second + b.second;
+
+  return result;
+}
+
+struct Interval *intervalDiv(struct Interval a, struct Interval b) {
+  struct Interval *result = malloc(sizeof(struct Interval));
+
+  result->first = a.first + b.first;
+  result->second = a.second + b.second;
+
+  return result;
+}
+
+struct Interval **calculate(struct Expression expression,
+                            struct Interval **intervalVector) {
+
+  struct Interval **ansIntervalVector =
+      malloc(sizeof(struct Interval *) * OPS + 1);
+
+  if (expression.ops[0] == '+') {
+    ansIntervalVector[0] = intervalSum(*intervalVector[0], *intervalVector[1]);
+  } else if (expression.ops[0] == '-') {
+    ansIntervalVector[0] = intervalSum(*intervalVector[0], *intervalVector[1]);
+  } else if (expression.ops[0] == '*') {
+    ansIntervalVector[0] = intervalSum(*intervalVector[0], *intervalVector[1]);
+  } else if (expression.ops[0] == '/') {
+    ansIntervalVector[0] = intervalSum(*intervalVector[0], *intervalVector[1]);
+  }
+
+  for (int i = 2; i < OPS + 1; i++) {
+    if (expression.ops[i] == '+') {
+      ansIntervalVector[i - 1] =
+          intervalSum(*ansIntervalVector[i - 2], *intervalVector[i]);
+    } else if (expression.ops[i] == '-') {
+
+    } else if (expression.ops[i] == '*') {
+
+    } else if (expression.ops[i] == '/') {
+    }
+  }
+
+  return intervalVectors;
+}
 
 void printAnswer(struct Interval **intervalVector) {
-
   for (int i = 0; i < OPS; i++) {
-    printInterval(*interval[i]);
-    printf("EA: %1.8e; ", absError(interval));
-    printf("ER: %1.8e; ", relError(interval));
-    printf("ULPs: %d;", calcULPs(interval));
+    printInterval(*intervalVector[i]);
+    printf("EA: %1.8e; ", absError(*intervalVector[i]));
+    printf("ER: %1.8e; ", relError(*intervalVector[i]));
+    printf("ULPs: %d;", calcULPs(*intervalVector[i]));
   }
 }
 
