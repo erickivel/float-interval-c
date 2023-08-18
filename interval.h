@@ -4,12 +4,12 @@
 #define OPS 4
 
 struct Interval {
-  double first;
-  double second;
+  float first;
+  float second;
 };
 
 struct Expression {
-  double nums[OPS + 1];
+  float nums[OPS + 1];
   char ops[OPS];
 };
 
@@ -20,9 +20,13 @@ struct Interval **makeIntervalVector(struct Expression *expr);
 struct Interval **calculate(struct Expression expression,
                             struct Interval **intervalVector);
 
-void printAnswer(struct Interval **intervalVector);
+void printAnswer(struct Expression expression, struct Interval **intervalVector,
+                 struct Interval **ansIntervalVector);
 
 void freeExpression(struct Expression expression);
 void freeIntervalVector(struct Interval **interval);
+
+void printVector(struct Expression expression,
+                 struct Interval **intervalVector);
 
 #endif /* INTERVAL_H */

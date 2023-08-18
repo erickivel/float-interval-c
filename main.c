@@ -7,7 +7,10 @@ int main(void) {
   struct Interval **intervalVector = makeIntervalVector(expr);
 
   struct Interval **answer = calculate(*expr, intervalVector);
-  printAnswer(answer);
+
+  // printVector(*expr, answer);
+
+  printAnswer(*expr, intervalVector, answer);
 
   return 0;
 }
