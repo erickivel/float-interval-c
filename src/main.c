@@ -1,5 +1,4 @@
-#include "interval.h"
-#include <stdio.h>
+#include "../include/interval.h"
 
 int main(void) {
   struct Expression *expr = readExpression();
