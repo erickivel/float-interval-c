@@ -1,15 +1,22 @@
+#include <stdint.h>
+
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
 #define OPS 4
 
+typedef union {
+  int32_t i;
+  float f;
+} FloatT;
+
 struct Interval {
-  float first;
-  float second;
+  FloatT first;
+  FloatT second;
 };
 
 struct Expression {
-  float nums[OPS + 1];
+  FloatT nums[OPS + 1];
   char ops[OPS];
 };
 
@@ -23,10 +30,9 @@ struct Interval **calculate(struct Expression expression,
 void printAnswer(struct Expression expression, struct Interval **intervalVector,
                  struct Interval **ansIntervalVector);
 
-void freeExpression(struct Expression expression);
+void freeExpression(struct Expression *expression);
 void freeIntervalVector(struct Interval **interval);
 
-void printVector(struct Expression expression,
-                 struct Interval **intervalVector);
+void freeAnsIntervalVector(struct Interval **interval);
 
 #endif /* INTERVAL_H */

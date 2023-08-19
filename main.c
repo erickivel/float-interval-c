@@ -8,9 +8,11 @@ int main(void) {
 
   struct Interval **answer = calculate(*expr, intervalVector);
 
-  // printVector(*expr, answer);
-
   printAnswer(*expr, intervalVector, answer);
+
+  freeExpression(expr);
+  freeIntervalVector(intervalVector);
+  freeAnsIntervalVector(answer);
 
   return 0;
 }

@@ -6,9 +6,6 @@
 
 #include "interval.h"
 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
 struct Expression *readExpression() {
   struct Expression *expr = malloc(sizeof(struct Expression));
 
@@ -18,11 +15,11 @@ struct Expression *readExpression() {
   scanf("%f %c %f %c %f %c %f %c %f", &x1, &o1, &x2, &o2, &x3, &o3, &x4, &o4,
         &x5);
 
-  expr->nums[0] = x1;
-  expr->nums[1] = x2;
-  expr->nums[2] = x3;
-  expr->nums[3] = x4;
-  expr->nums[4] = x5;
+  expr->nums[0].f = x1;
+  expr->nums[1].f = x2;
+  expr->nums[2].f = x3;
+  expr->nums[3].f = x4;
+  expr->nums[4].f = x5;
   expr->ops[0] = o1;
   expr->ops[1] = o2;
   expr->ops[2] = o3;
@@ -36,8 +33,8 @@ struct Interval *makeInterval(float num) {
 
   fesetround(FE_DOWNWARD);
 
-  inter->first = nextafter(num, -INFINITY);
-  inter->second = nextafter(num, INFINITY);
+  inter->first.f = nextafterf(num, -INFINITY);
+  inter->second.f = nextafterf(num, INFINITY);
 
   return inter;
 }
@@ -47,79 +44,87 @@ struct Interval **makeIntervalVector(struct Expression *expr) {
       malloc(sizeof(struct Interval *) * (OPS + 1));
 
   for (int i = 0; i < OPS + 1; i++) {
-    intervalVectors[i] = makeInterval(expr->nums[i]);
+    intervalVectors[i] = makeInterval(expr->nums[i].f);
   }
 
   return intervalVectors;
 }
 
 void printInterval(struct Interval interval) {
-  printf("[%1.8e,%1.8e]", interval.first, interval.second);
+  printf("[%1.8e,%1.8e]", interval.first.f, interval.second.f);
 }
 
 float absError(struct Interval interval) {
-  return interval.second - interval.first;
+  return interval.second.f - interval.first.f;
 }
 
 float relError(struct Interval interval) {
-  return (interval.second - interval.first) / interval.first;
+  return (interval.second.f - interval.first.f) / interval.first.f;
 }
 
 int calcULPs(struct Interval interval) {
-  // float aux = interval.first;
-  // long ulps = 0;
-
-  return (int)interval.second - (int)interval.first;
-  // while (nextafter(double x, double y)) {
-  //   aux = nextafter(aux, INFINITY);
-  //   ulps++;
-  // }
-  //
-  // return ulps;
+  return abs(interval.second.i - interval.first.i);
 }
 
 void printOps(struct Expression expr) {
   for (int i = 0; i < OPS; i++) {
-    printInterval(*makeInterval(expr.nums[i]));
+    printInterval(*makeInterval(expr.nums[i].f));
     printf(" %c ", expr.ops[i]);
   }
-  printInterval(*makeInterval(expr.nums[4]));
+  printInterval(*makeInterval(expr.nums[4].f));
 }
 
 struct Interval *intervalSum(struct Interval a, struct Interval b) {
+  fesetround(FE_DOWNWARD);
+
   struct Interval *result = malloc(sizeof(struct Interval));
 
-  result->first = a.first + b.first;
-  result->second = a.second + b.second;
+  result->first.f = a.first.f + b.first.f;
+  result->second.f = a.second.f + b.second.f;
+
+  result->first.f = nextafterf(result->first.f, -INFINITY);
+  result->second.f = nextafterf(result->second.f, INFINITY);
 
   return result;
 }
 
 struct Interval *intervalSub(struct Interval a, struct Interval b) {
+  fesetround(FE_DOWNWARD);
+
   struct Interval *result = malloc(sizeof(struct Interval));
 
-  result->first = a.first - b.second;
-  result->second = a.second - b.first;
+  result->first.f = a.first.f - b.second.f;
+  result->second.f = a.second.f - b.first.f;
+
+  result->first.f = nextafterf(result->first.f, -INFINITY);
+  result->second.f = nextafterf(result->second.f, INFINITY);
 
   return result;
 }
 
-// X * Y = [a,b] * [c,d]  =  [min{a*c,a*d,b*c,b*d}, max{a*c,a*d,b*c,b*d}]
 struct Interval *intervalMult(struct Interval a, struct Interval b) {
+  fesetround(FE_DOWNWARD);
+
   struct Interval *result = malloc(sizeof(struct Interval));
 
-  result->first = MIN(MIN(a.first * b.first, a.first * b.second),
-                      MIN(a.second * b.first, a.second * b.second));
-  result->second = MAX(MAX(a.first * b.first, a.first * b.second),
-                       MAX(a.second * b.first, a.second * b.second));
+  result->first.f = fmin(fmin(a.first.f * b.first.f, a.first.f * b.second.f),
+                         fmin(a.second.f * b.first.f, a.second.f * b.second.f));
+  result->second.f =
+      fmax(fmax(a.first.f * b.first.f, a.first.f * b.second.f),
+           fmax(a.second.f * b.first.f, a.second.f * b.second.f));
+
+  result->first.f = nextafterf(result->first.f, -INFINITY);
+  result->second.f = nextafterf(result->second.f, INFINITY);
 
   return result;
 }
 
 struct Interval *intervalDiv(struct Interval a, struct Interval b) {
+  fesetround(FE_DOWNWARD);
+
   struct Interval aux;
-  aux.first = 1 / b.second;
-  aux.second = 1 / b.first;
+  aux.first.f = 1 / b.second.f;
+  aux.second.f = 1 / b.first.f;
 
   return intervalMult(a, aux);
 }
@@ -159,13 +164,6 @@ struct Interval **calculate(struct Expression expression,
   return ansIntervalVector;
 }
 
-void printVector(struct Expression expression,
-                 struct Interval **intervalVector) {
-  for (int i = 0; i < 4; i++) {
-    printInterval(*intervalVector[i]);
-  }
-}
-
 void printAnswer(struct Expression expression, struct Interval **intervalVector,
                  struct Interval **ansIntervalVector) {
   printf("1:\n");
@@ -196,5 +194,20 @@ void printAnswer(struct Expression expression, struct Interval **intervalVector,
   }
 }
 
-void freeExpression(struct Expression expression);
-void freeIntervalVector(struct Interval **interval);
+void freeExpression(struct Expression *expression) { free(expression); }
+
+void freeIntervalVector(struct Interval **interval) {
+  for (int i = 0; i < OPS + 1; i++) {
+    free(interval[i]);
+  }
+
+  free(interval);
+}
+
+void freeAnsIntervalVector(struct Interval **interval) {
+  for (int i = 0; i < OPS; i++) {
+    free(interval[i]);
+  }
+
+  free(interval);
+}
