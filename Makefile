@@ -1,7 +1,7 @@
 TARGET  = interval
 
-SRCDIRS = .
-INCDIRS = .
+SRCDIRS = ./src ./src/interval
+INCDIRS = ./include
 
 CC			= gcc
 CFILES		= $(foreach D, $(SRCDIRS), $(wildcard $(D)/*.c))
